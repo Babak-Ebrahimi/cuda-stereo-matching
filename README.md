@@ -69,7 +69,7 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/Babak-Ebrahimi/cuda-stereo-matching
-cd nwcc7
+cd cuda-stereo-matching
 ```
 
 Create a build directory:
