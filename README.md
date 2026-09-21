@@ -68,7 +68,7 @@ Other CUDA-capable NVIDIA GPUs may also work, but performance will depend on the
 Clone the repository:
 
 ```bash
-git clone https://github.com/Babak-Ebrahimi/cuda-stereo-matching
+git clone https://github.com/Babak-Ebrahimi/cuda-stereo-matching.git
 cd cuda-stereo-matching
 ```
 
