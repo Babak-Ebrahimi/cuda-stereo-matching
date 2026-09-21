@@ -1,4 +1,4 @@
-//Udacity HW2 Driver
+
 
 #include <iostream>
 #include "timer.h"
@@ -10,6 +10,10 @@
 #include <float.h>
 #include <limits.h>
 #include <stdlib.h> 
+#include <cstdio>
+#include <ctime>
+
+
 
 // for uchar4 struct
 #include <cuda_runtime.h>
@@ -18,10 +22,10 @@
 //#include "compare.h"
 
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/imgproc.hpp"
 
 #include <cuda.h>
 #include <math.h>  
@@ -305,8 +309,8 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
         }
       }
 
-      gw_average_color_1[r * numCols + c] = result_1/(filterWidth*filterWidth);
-      gw_average_color_2[r * numCols + c] = result_2/(filterWidth*filterWidth);
+      gw_average_color_1[r * numCols + c] = static_cast<float>(result_1/(filterWidth*filterWidth));
+      gw_average_color_2[r * numCols + c] = static_cast<float>(result_2/(filterWidth*filterWidth));
     }
   }
   
@@ -328,8 +332,8 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	  int image_r = std::min(std::max(r + filter_r, 0), static_cast<int>(numRows - 1));
           int image_c = std::min(std::max(c + filter_c, 0), static_cast<int>(numCols - 1));
 
-          float image_value_1 = static_cast<float>(grayImage_1[image_r * numCols + image_c])-static_cast<float>(gw_average_color_1[r * numCols + c]);
-          float image_value_2 = static_cast<float>(grayImage_2[image_r * numCols + image_c])-static_cast<float>(gw_average_color_2[r * numCols + c]);
+          float image_value_1 = static_cast<float>(static_cast<float>(grayImage_1[image_r * numCols + image_c]))-static_cast<float>(gw_average_color_1[r * numCols + c]);
+          float image_value_2 = static_cast<float>(static_cast<float>(grayImage_2[image_r * numCols + image_c]))-static_cast<float>(gw_average_color_2[r * numCols + c]);
 	  float filter_value = filter[(filter_r + filterWidth/2) * filterWidth + filter_c + filterWidth/2];
 
           result_1 += image_value_1* image_value_1 * filter_value;
@@ -337,8 +341,8 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
         }
       }
 
-      gw_auto_correlation_1[r * numCols + c] = result_1/(filterWidth*filterWidth);
-      gw_auto_correlation_2[r * numCols + c] = result_2/(filterWidth*filterWidth);
+      gw_auto_correlation_1[r * numCols + c] = static_cast<float>(result_1/(filterWidth*filterWidth));
+      gw_auto_correlation_2[r * numCols + c] = static_cast<float>(result_2/(filterWidth*filterWidth));
     }
   }
 
@@ -389,7 +393,7 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	  }
 	  //if (r==200 && c== 200 )
 	  //printf("%f ",result);
-	  gw_cross_correlation_3[r * numCols + c][j] = result/(filterWidth*filterWidth);
+	  gw_cross_correlation_3[r * numCols + c][j] = static_cast<float>(result/(filterWidth*filterWidth));
 	  
 	}
 
@@ -417,7 +421,7 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	  }
 	  //if (r==200 && c== 200 )
 	  //printf("%f ",result);
-	  gw_cross_correlation_3[r * numCols + c][j] = result/(filterWidth*filterWidth);
+	  gw_cross_correlation_3[r * numCols + c][j] = static_cast<float>(result/(filterWidth*filterWidth));
 	  
 	}
       }
@@ -447,7 +451,7 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	      printf("gw_auto_correlation_1[%d]=%d\n",r * numCols + c,gw_auto_correlation_1[r * numCols + c]);
 	      printf("gw_auto_correlation_2[%d]=%d\n",r * numCols + j,gw_auto_correlation_2[r *numCols + j]);
 	    }*/
-	    gw_normalized_score_4[r * numCols + c][j]=static_cast<float>(gw_cross_correlation_3[r * numCols + c][j])/static_cast<float>(sqrt(static_cast<float>(gw_auto_correlation_1[r * numCols + c])*static_cast<float>(gw_auto_correlation_2[r * numCols + c-max_disparity+j])));
+	    gw_normalized_score_4[r * numCols + c][j]=static_cast<float>(static_cast<float>(gw_cross_correlation_3[r * numCols + c][j])/static_cast<float>(sqrt(gw_auto_correlation_1[r * numCols + c]*gw_auto_correlation_2[r * numCols + c-max_disparity+j])));
 	}
       }
       else{
@@ -458,7 +462,7 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	      printf("gw_auto_correlation_1[%d]=%d\n",r * numCols + c,gw_auto_correlation_1[r * numCols + c]);
 	      printf("gw_auto_correlation_2[%d]=%d\n",r * numCols + j,gw_auto_correlation_2[r *numCols + j]);
 	    }*/
-	    gw_normalized_score_4[r * numCols + c][j]=static_cast<float>(gw_cross_correlation_3[r * numCols + c][j])/static_cast<float>(sqrt(static_cast<float>(gw_auto_correlation_1[r * numCols + c])*static_cast<float>(gw_auto_correlation_2[r * numCols + j])));
+	    gw_normalized_score_4[r * numCols + c][j]=static_cast<float>(gw_cross_correlation_3[r * numCols + c][j])/static_cast<float>(sqrt(gw_auto_correlation_1[r * numCols + c]*gw_auto_correlation_2[r * numCols + j]));
 	    
 	}
       }
@@ -475,8 +479,8 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
   for (int j=0; j<max_disparity;j++) {
      printf("gw_normalized_score_4[200][%d]=%f\n",j,gw_normalized_score_4[200][j]);
   }*/
-  printf("\nFLT_MIN=%f\n",FLT_MIN);
-  printf("\nINT_MIN=%d\n",INT_MIN);
+  //-printf("\nFLT_MIN=%f\n",FLT_MIN);
+  //-printf("\nINT_MIN=%d\n",INT_MIN);
   float max_match_score= -1000;
   int match_index=INT_MIN;
   int search_range;
@@ -489,20 +493,15 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	for (int j=0; j<=search_range;j++){
 	  if (gw_normalized_score_4[r * numCols + c][j]>max_match_score){
 	    max_match_score=gw_normalized_score_4[r * numCols + c][j];
-	    match_index=j;
-	    
+	    match_index=j; 
 	  }
-	  
 	}
-	
 	if (search_range==max_disparity){
 	  match_matrix[r * numCols + c]=c-max_disparity+match_index;
 	}
 	else{
 	  match_matrix[r * numCols + c]=match_index;
 	}
-	
-	
 	/*
 	if ((r==239) &&(c==0)){
 	  printf("search_range = %d",search_range);
@@ -510,11 +509,8 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	    printf("At position (%d ,%d)[%d] the w_normalized_score_4[r * numCols + c][j]=%f is\n",r,c,j,gw_normalized_score_4[r * numCols + c][j]);
 	  }
 	}*/
-	
       }
   }
-  
-  
   for (int r = 0; r < (int)numRows; ++r) {
       for (int c = 0; c < (int)numCols; ++c) {
 	disparity_map[r * numCols + c]=abs(match_matrix[r * numCols + c]-c);
@@ -539,7 +535,6 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	if (disparity_map[r * numCols + c]==-2147483648){
 	    printf("At position (%d ,%d) the disparity is -2147483648 and match matrix=%d \n",r,c,match_matrix[r * numCols + c]);
 	}*/
-	
       }
   }
   if (min_founded_disparity==0){
@@ -550,16 +545,16 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
 	//disparity_map[r * numCols + c]=abs(match_matrix[r * numCols + c]-c);
 	if (disparity_map[r * numCols + c]==0){
 	   depth_map[r * numCols + c]=255;
-	  }
-	  else{
-	      depth_map[r * numCols + c]=(float)(max_founded_disparity)*(static_cast<float>(1.0)/(static_cast<float>(disparity_map[r * numCols + c])));
-	  }
+	  
+	}
+	else{
+	  depth_map[r * numCols + c]=static_cast<int>((max_founded_disparity)*(static_cast<float>(1.0)/(static_cast<float>(disparity_map[r * numCols + c]))));
+	}
       }
   }
-  
-  printf("max_founded_disparity= %d\n",max_founded_disparity);
-  printf("min_founded_disparity= %d\n",min_founded_disparity);
-  printf("match_matrix[111,356]=%d\n",match_matrix[111 * numCols + 356]);
+  //*printf("max_founded_disparity= %d\n",max_founded_disparity);
+  //*printf("min_founded_disparity= %d\n",min_founded_disparity);
+  //*printf("match_matrix[111,356]=%d\n",match_matrix[111 * numCols + 356]);
   
   /*
   for (int j=350;j<361;j++){
@@ -573,22 +568,18 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
       }
       printf("\n");
   }*/
-  
-  printf("\ndisparity_map:\n");
+  //*printf("\ndisparity_map:\n");
   int r,c;
   for (r = 180; r < 220; ++r) {
       for (c = 180; c < 220; ++c) {
-	printf("%d ",disparity_map[r * numCols + c]);
+	//*printf("%d ",disparity_map[r * numCols + c]);
       }
       
-      printf(" babak%d",r);
-      printf("\n");
+      //*printf(" babak%d",r);
+      //*printf("\n");
   }
-  printf("r= %d c= %d  Goodbye lenin \n",r,c);
-  printf("r= %d c= %d  Goodbye lenin \n",r,c);
-  printf("%s\n","Goodbye lenin"); 
-  printf("%s\n","hi karen1");
-  
+  //*printf("r= %d c= %d  Goodbye lenin \n",r,c);
+  printf("%s\n","check point 1");
   /*
   printf("\ndepth map:\n");
   for (int r = 200; r < 210; ++r) {
@@ -600,45 +591,39 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
   /*
   for (int j=0; j<max_disparity;j++){
     printf("%f ",gw_normalized_score_4[200 * numCols + 200][j]);
-    
   }
   printf("\n");
   for (int j=0; j<max_disparity;j++){
-    printf("%f ",gw_normalized_score_4[200 * numCols + 201][j]);
-    
+    printf("%f ",gw_normalized_score_4[200 * numCols + 201][j]); 
   }
   printf("\n");
   for (int j=0; j<max_disparity;j++){
     printf("%f ",gw_normalized_score_4[200 * numCols + 202][j]);
     
   }
-  
- 
   for (int j=0; j<max_disparity;j++){
     printf("%f ",gw_cross_correlation_3[200 * numCols + 200][j]);
     
   }
   printf("\n");
   for (int j=0; j<max_disparity;j++){
-    printf("%f ",gw_cross_correlation_3[200 * numCols + 201][j]);
-    
+    printf("%f ",gw_cross_correlation_3[200 * numCols + 201][j]); 
   }
   printf("\n");
   for (int j=0; j<max_disparity;j++){
     printf("%f ",gw_cross_correlation_3[200 * numCols + 202][j]);
-    
   }
   printf("\n");
    */
-  printf("%s\n","hi karen2");
- int min_value=disparity_map[0], max_value=disparity_map[0];
+  printf("%s\n","check point 2");
+  int min_value=disparity_map[0], max_value=disparity_map[0];
   for (int i = 0; i < numRows * numCols; ++i) {
     //outputImage_1[i] =static_cast<int> (depth_map[i]);
     //printf("disparity_map[%d]=%d\n",i,disparity_map[i]);
     
     outputImage_1[i] =static_cast<uchar>(disparity_map[i]);
     if (disparity_map[i]==-2147483648){
-      printf("disparity_map[%d][%d]=%d\n",i/450,i-((i/450)*450),disparity_map[i]);
+      //*printf("disparity_map[%d][%d]=%d\n",i/450,i-((i/450)*450),disparity_map[i]);
     }
     if (disparity_map[i]<min_value)
       min_value=disparity_map[i];
@@ -649,11 +634,36 @@ void CPU_referenceCalculation(const uchar* const grayImage_1,const uchar* const 
     
     //outputImage_2[i] = disparity_map_2[i];
   }
-  printf("min_value=%d\n",min_value);
-  printf("max_value=%d\n",max_value);
+  //*printf("min_value=%d\n",min_value);
+  //*printf("max_value=%d\n",max_value);
  
  // delete[] grayfiltered_1;
  // delete[] grayfiltered_2;
+  
+  
+  for (int r = 0; r < (int)numRows; ++r){
+    for (int c = 0; c < (int) numCols; ++c){
+      index=r * numCols + c;
+      if (c>=max_disparity){
+	delete[] gw_cross_correlation_3[index];
+	delete[] gw_normalized_score_4[index];
+	//temp_3[i]=new unsigned char[max_disparity];
+      } 
+      else{
+	delete[] gw_cross_correlation_3[index];
+	delete[] gw_normalized_score_4[index];
+      }
+    }
+  }
+  delete[] gw_cross_correlation_3;
+  delete[] gw_normalized_score_4;
+  delete[] gw_average_color_1; 
+  delete[] gw_auto_correlation_1; 
+  delete[] gw_average_color_2;
+  delete[] gw_auto_correlation_2;  
+  delete[] match_matrix; 
+  delete[] disparity_map;
+  delete[] depth_map;
  
 
 }
@@ -668,28 +678,32 @@ void CPU_postProcess(const std::string& output_file, uchar* data_ptr) {
   //cv::cvtColor(output, imageOutputBGR, CV_RGBA2BGR);
   //cv::cvtColor(output, imageOutputBGR, CV_GRAY2BGR);
   //output the image
-  printf("%s\n","hi karen3");
   //cv::imwrite(output_file.c_str(), imageOutputBGR);
   
   cv::imwrite(output_file.c_str(), img_hist_equalized);
   
   //cout << output << endl;
-  
-  
-  
-  
-  
   //cv::imwrite(output_file.c_str(), output);
 }
-
-
+/************postprocess*******/
+void GPU_postProcess(const std::string& output_file, uchar* data_ptr) {
+  cv::Mat output(numRows, numCols, CV_8UC1, (void*)data_ptr);
+  
+  Mat img_hist_equalized;
+  equalizeHist(output, img_hist_equalized);
+  //cv::Mat imageOutputBGR;
+  //cv::cvtColor(output, imageOutputBGR, CV_GRAY2BGR);//CV_RGBA2BGR);
+  //output the image
+  //cv::imwrite(output_file.c_str(), imageOutputBGR);
+  cv::imwrite(output_file.c_str(), img_hist_equalized);
+}
 /************preprocess**********/
 void  CPU_Preprocess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2,
 		 uchar **h_outputImageGray_1, uchar **h_outputImageGray_2,
                  float **h_filter, int *filterWidth, const std::string &filename_1,const std::string &filename_2){
  
-  cv::Mat image_1 = cv::imread(filename_1.c_str(), CV_LOAD_IMAGE_COLOR);
-  cv::Mat image_2 = cv::imread(filename_2.c_str(), CV_LOAD_IMAGE_COLOR);
+  cv::Mat image_1 = cv::imread(filename_1.c_str(), cv::IMREAD_COLOR);
+  cv::Mat image_2 = cv::imread(filename_2.c_str(), cv::IMREAD_COLOR);
  
   if (image_1.empty() || image_2.empty()) {
     std::cerr << "Couldn't open file: " << filename_1<< "or"<<filename_2 << std::endl;
@@ -697,8 +711,8 @@ void  CPU_Preprocess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2,
   }
   
   //copy the transformed image from first parameter to the second one
-  cv::cvtColor( image_1, imageInputGray_1, CV_BGR2GRAY);
-  cv::cvtColor( image_2, imageInputGray_2, CV_BGR2GRAY);
+  cv::cvtColor( image_1, imageInputGray_1, cv::COLOR_BGR2GRAY);
+  cv::cvtColor( image_2, imageInputGray_2, cv::COLOR_BGR2GRAY);
 
   //allocate memory for the output
  
@@ -738,13 +752,11 @@ void  CPU_Preprocess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2,
       //filterSum += filterValue;
     }
   }  
+  image_1.release();
+  image_2.release();
   
   
 }
-//************************************
-
-
-
 //************************************
 
 
@@ -767,8 +779,8 @@ void GPU_preProcess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2, uchar
   //make sure the context initializes ok
   //checkCudaErrors(cudaFree(0));
   
-  cv::Mat image_1 = cv::imread(filename_1.c_str(), CV_LOAD_IMAGE_COLOR);
-  cv::Mat image_2 = cv::imread(filename_2.c_str(), CV_LOAD_IMAGE_COLOR);
+  cv::Mat image_1 = cv::imread(filename_1.c_str(), cv::IMREAD_COLOR);
+  cv::Mat image_2 = cv::imread(filename_2.c_str(), cv::IMREAD_COLOR);
  
   if (image_1.empty() || image_2.empty()) {
     std::cerr << "Couldn't open file: " << filename_1<< "or"<<filename_2 << std::endl;
@@ -776,13 +788,11 @@ void GPU_preProcess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2, uchar
   }
   
   //copy the transformed image from first parameter to the second one
-  cv::cvtColor( image_1, G_imageInputGray_1, CV_BGR2GRAY);
-  cv::cvtColor( image_2, G_imageInputGray_2, CV_BGR2GRAY);
+  cv::cvtColor( image_1, G_imageInputGray_1, cv::COLOR_BGR2GRAY);
+  cv::cvtColor( image_2, G_imageInputGray_2, cv::COLOR_BGR2GRAY);
 
   //allocate memory for the output
- 
   G_imageOutputGray.create(image_1.rows, image_1.cols, CV_8UC1);
-
   
   //This shouldn't ever happen given the way the images are created
   //at least based upon my limited understanding of OpenCV, but better to check
@@ -795,42 +805,39 @@ void GPU_preProcess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2, uchar
   *h_inputImageGray_1  = (unsigned char *)G_imageInputGray_1.ptr<unsigned char>(0);
   *h_inputImageGray_2  = (unsigned char *)G_imageInputGray_2.ptr<unsigned char>(0);
   *h_outputImageGray = (unsigned char *)G_imageOutputGray.ptr<unsigned char>(0);
- 
-  
-  
+
   numRows=G_imageInputGray_1.rows;
   numCols=G_imageInputGray_1.cols;
-  
   const int numPixels = numRows * numCols;
 
   //allocate memory on the device for both input and output
-  checkCudaErrors(   cudaMalloc((void**)d_inputImageGray_1, sizeof(unsigned char) * numPixels)   );
+  //checkCudaErrors(   cudaMalloc((void**)d_inputImageGray_1, sizeof(unsigned char) * numPixels)   );
   
-  cudaError_t t1 = cudaGetLastError();
+  //cudaError_t t1 = cudaGetLastError();
   
-  cout << cudaGetErrorString(t1) << endl;
-
-  char c;
-  cin >> c;  
+  //cout << cudaGetErrorString(t1) << endl;
   
+  //char c;
+  //cin >> c;  
+  
+  checkCudaErrors(cudaMalloc((void**)d_inputImageGray_1, sizeof(unsigned char) * numPixels)); 
   checkCudaErrors(cudaMalloc((void**)d_inputImageGray_2, sizeof(unsigned char) * numPixels));
   checkCudaErrors(cudaMalloc((void**)d_outputImageGray, sizeof(unsigned char) * numPixels));
-  
-  checkCudaErrors(cudaMemset(*d_outputImageGray, 0,  sizeof(unsigned char) * numPixels)); //make sure no memory is left laying around
+  checkCudaErrors(cudaMemset((void*)*d_outputImageGray, 0,  sizeof(unsigned char) * numPixels)); //make sure no memory is left laying around
   
   checkCudaErrors(cudaMalloc((void**)GPU_gw_average_color_1,    sizeof(float) * numPixels));
   checkCudaErrors(cudaMalloc((void**)GPU_gw_auto_correlation_1,  sizeof(float) * numPixels));
   checkCudaErrors(cudaMalloc((void**)GPU_gw_average_color_2,   sizeof(float) * numPixels));
   checkCudaErrors(cudaMalloc((void**)GPU_gw_auto_correlation_2,  sizeof(float) * numPixels));
-  checkCudaErrors(cudaMemset(*GPU_gw_average_color_1,   0, sizeof(float) * numPixels));
-  checkCudaErrors(cudaMemset(*GPU_gw_auto_correlation_1, 0, sizeof(float) * numPixels));
-  checkCudaErrors(cudaMemset(*GPU_gw_average_color_2,  0, sizeof(float) * numPixels));
-  checkCudaErrors(cudaMemset(*GPU_gw_auto_correlation_2, 0, sizeof(float) * numPixels));
+  checkCudaErrors(cudaMemset((void*)*GPU_gw_average_color_1,   0, sizeof(float) * numPixels));
+  checkCudaErrors(cudaMemset((void*)*GPU_gw_auto_correlation_1, 0, sizeof(float) * numPixels));
+  checkCudaErrors(cudaMemset((void*)*GPU_gw_average_color_2,  0, sizeof(float) * numPixels));
+  checkCudaErrors(cudaMemset((void*)*GPU_gw_auto_correlation_2, 0, sizeof(float) * numPixels));
   
   checkCudaErrors(cudaMalloc((void**)GPU_gw_cross_correlation_3,   sizeof(float) * numPixels));
   checkCudaErrors(cudaMalloc((void**)GPU_gw_normalized_score_4,  sizeof(float) * numPixels));
-  checkCudaErrors(cudaMemset(*GPU_gw_cross_correlation_3, 0, sizeof(float) * numPixels));
-  checkCudaErrors(cudaMemset(*GPU_gw_normalized_score_4, 0, sizeof(float) * numPixels));
+  checkCudaErrors(cudaMemset((void*)*GPU_gw_cross_correlation_3, 0, sizeof(float) * numPixels));
+  checkCudaErrors(cudaMemset((void*)*GPU_gw_normalized_score_4, 0, sizeof(float) * numPixels));
   
   checkCudaErrors(cudaMalloc((void**)match_matrix,  sizeof(int) * numPixels));
   checkCudaErrors(cudaMalloc((void**)disparity_map,  sizeof(int) * numPixels));
@@ -856,8 +863,6 @@ void GPU_preProcess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2, uchar
   match_matrix_=*match_matrix;
   disparity_map_=*disparity_map;
   depth_map_=*depth_map;
-  
-   
 
   //now create the filter that they will use
   const int blurKernelWidth = 7;
@@ -887,8 +892,6 @@ void GPU_preProcess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2, uchar
       (*h_filter)[(r + blurKernelWidth/2) * blurKernelWidth + c + blurKernelWidth/2] *= normalizationFactor;
     }
   }
-
-
   //blurred
   checkCudaErrors(cudaMalloc(d_redBlurred,    sizeof(unsigned char) * numPixels));
   checkCudaErrors(cudaMalloc(d_greenBlurred,  sizeof(unsigned char) * numPixels));
@@ -900,26 +903,44 @@ void GPU_preProcess(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2, uchar
  */
 }
 
-/************postprocess*******/
-void GPU_postProcess(const std::string& output_file, uchar* data_ptr) {
-  cv::Mat output(numRows, numCols, CV_8UC1, (void*)data_ptr);
 
-  cv::Mat imageOutputBGR;
-  cv::cvtColor(output, imageOutputBGR, CV_GRAY2BGR);//CV_RGBA2BGR);
-  //output the image
-  cv::imwrite(output_file.c_str(), imageOutputBGR);
-}
 /**********cleanUp**********/
-void CPU_cleanUp(uchar **h_inputImageGray_1,uchar **h_inputImageGray_2, uchar **h_outputImageGray_1, uchar **h_outputImageGray_2)
+void CPU_cleanUp(/*uchar **h_inputImageGray_1,uchar **h_inputImageGray_2, uchar **h_outputImageGray_1, uchar **h_outputImageGray_2*/)
 {
-
   
-  delete[] h_inputImageGray_1;
-  delete[] h_inputImageGray_2;
-  delete[] h_outputImageGray_1;
-  delete[] h_outputImageGray_2;
+  
+  //printf("%s\n","hi bob error here is begining of CPU_cleanUp");
+  
+  imageInputRGBA.release();
+  imageOutputRGBA.release();
+  imageOutputRGBA_1.release();
+  imageOutputRGBA_2.release();
+  imageInputGray_1.release();
+  imageInputGray_2.release();
+  imageOutputGray_1.release();
+  imageOutputGray_2.release();
+  G_imageInputGray_1.release();
+  G_imageInputGray_2.release();
+  G_imageOutputGray.release();
+  
+  
+  //printf("%s\n","hi bob error here is middle of CPU_cleanUp");
+  
+  
+  delete[] d_inputImageGray_1__;
+  delete[] d_inputImageGray_2__;
+  delete[] d_outputImageGray__;
+  delete[] GPU_gw_average_color_1_;
+  delete[] GPU_gw_auto_correlation_1_;
+  delete[] GPU_gw_average_color_2_;
+  delete[] GPU_gw_auto_correlation_2_;
+  delete[] GPU_gw_cross_correlation_3_;
+  delete[] GPU_gw_normalized_score_4_;
   delete[] h_filter__;
-
+  
+  //printf("%s\n","hi bob error here is second middle of CPU_cleanUp");
+  
+  
 }
 
 /**********cleanUp**********/
@@ -938,7 +959,6 @@ void GPU_cleanUp(void)
   checkCudaErrors(cudaFree(match_matrix_));
   checkCudaErrors(cudaFree(disparity_map_));
   checkCudaErrors(cudaFree(depth_map_));
-  
   
   delete[] h_filter__;
 
@@ -982,16 +1002,13 @@ void GPU_Part(int argc, char **argv)
       float image_value = static_cast<float>(channel[r * numCols + c]);
     }
   }*/
-  const int max_disparity=80;
   
-  
-
   float *h_filter;
   int    filterWidth;
   std::string input_file_1;
   std::string input_file_2;
   std::string output_file;
-
+  std::string output_file_2;
   std::string reference_file;
   double perPixelError = 0.0;
   double globalError   = 0.0;
@@ -1001,14 +1018,14 @@ void GPU_Part(int argc, char **argv)
 	case 2:
 	  input_file_1 = std::string(argv[1]);
 	  output_file = "nwcc_output_1.png";
-	  //output_file_2 = "nwcc_output_2.png";
+	  output_file_2 = "nwcc_output_2.png";
 	  reference_file = "nwcc_reference.png";
 	  break;
 	case 3:
 	  input_file_1  = std::string(argv[1]);
 	  input_file_2 = std::string(argv[2]);
 	  output_file = "nwcc_output_1.png";
-	  //output_file_2 = "nwcc_output_2.png";
+	  output_file_2 = "nwcc_output_2.png";
 	  reference_file = "nwcc_reference.png";
 	  break;
 	case 4:
@@ -1036,15 +1053,11 @@ void GPU_Part(int argc, char **argv)
                  &match_matrix,&disparity_map,&depth_map,
 		 &h_filter, &filterWidth, input_file_1,input_file_2);
   
-  
-  
-  
   //load the image and give us our input and output pointers
   //preProcess(&h_inputImageRGBA, &h_outputImageRGBA, &h_outputImageRGBA_1, &d_inputImageRGBA, &d_outputImageRGBA, &d_outputImageRGBA_1,
   //           &d_redBlurred,&d_redBlurred_1, &d_greenBlurred,&d_greenBlurred_1, &d_blueBlurred,&d_blueBlurred_1,
   //           &h_filter, &filterWidth, input_file);
 
-  
   allocateMemoryAndCopyToGPU(numRows, numCols, h_filter, filterWidth);
   GpuTimer timer;
   timer.Start();
@@ -1060,7 +1073,7 @@ void GPU_Part(int argc, char **argv)
                      match_matrix,disparity_map,depth_map,
 		     numRows, numCols, filterWidth);
   
-   timer.Stop();
+  timer.Stop();
   cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
   int err = printf("Your code ran in: %f msecs.\n", timer.Elapsed());
 
@@ -1075,18 +1088,14 @@ void GPU_Part(int argc, char **argv)
   //
   //copy the output back to the host
   checkCudaErrors(cudaMemcpy(h_outputImageGray, d_outputImageGray__, sizeof(uchar) * numPixels, cudaMemcpyDeviceToHost));
-  //checkCudaErrors(cudaMemcpy(h_outputImageRGBA_1, d_outputImageRGBA_1__, sizeof(uchar4) * numPixels, cudaMemcpyDeviceToHost));
+  //checkCudaErrors(cudaMemcpy(h_outputImageRGBA_1, d_outputImageRGBA_1__, sizeof(uchar4) * numPixels, cudaMemcpyDeviceToHost));  
   
+  GPU_postProcess(output_file, h_outputImageGray);
   
-  //GPU_postProcess(output_file, h_outputImageGray);
-  //postProcess(output_file_1, h_outputImageRGBA_1);
-  
-  //GPU_referenceCalculation(h_inputImageGray_1,h_inputImageGray_2, h_outputImageGray_1,h_outputImageGray_2,numRows, numCols,h_filter, filterWidth);
   
   //GPU_postProcess(output_file_1, h_outputImageGray_1);
   //CPU_postProcess(output_file_2, h_outputImageGray_2);
-  
-  
+ 
   //CPU_postProcess(reference_file, h_outputImageRGBA);
     //  Cheater easy way with OpenCV
     //generateReferenceImage(input_file, reference_file, filterWidth);
@@ -1100,11 +1109,9 @@ void GPU_Part(int argc, char **argv)
   GPU_cleanUp();
 }
 
-
 //***********************
 void CPU_Part(int argc, char **argv)
 {
-  
   
   uchar *h_inputImageGray_1,*h_inputImageGray_2;
   uchar *h_outputImageGray_1,*h_outputImageGray_2;
@@ -1153,33 +1160,36 @@ void CPU_Part(int argc, char **argv)
       std::cerr << "Usage: ./nwcc input_file_1  input_file_2  [output_filename] [reference_filename] [perPixelError] [globalError]" << std::endl;
       exit(1);
   }
+  
   CPU_Preprocess(&h_inputImageGray_1,&h_inputImageGray_2,
 		 &h_outputImageGray_1, &h_outputImageGray_2,
                  &h_filter, &filterWidth, input_file_1,input_file_2);
   
-  
+  clock_t startTime = clock();
+
+   
   CPU_referenceCalculation(h_inputImageGray_1,h_inputImageGray_2, h_outputImageGray_1,h_outputImageGray_2,
                        numRows, numCols,
                        h_filter, filterWidth);
+  clock_t endTime = clock();
+  clock_t clockTicksTaken = endTime - startTime;
+  double timeInSeconds = clockTicksTaken / (double) CLOCKS_PER_SEC;
+  printf("Your code ran in: %f secs.\n", timeInSeconds);
   
   CPU_postProcess(output_file_1, h_outputImageGray_1);
+  
   //CPU_postProcess(output_file_2, h_outputImageGray_2);
-  
-  
   //CPU_postProcess(reference_file, h_outputImageRGBA);
-    //  Cheater easy way with OpenCV
-    //generateReferenceImage(input_file, reference_file, filterWidth);
+  //generateReferenceImage(input_file, reference_file, filterWidth);
   //compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
   
-  CPU_cleanUp(&h_inputImageGray_1,&h_inputImageGray_2, &h_outputImageGray_1,&h_outputImageGray_2);
+  CPU_cleanUp();//&h_inputImageGray_1,&h_inputImageGray_2, &h_outputImageGray_1,&h_outputImageGray_2);
 }
 /*******  Begin main *********/
-
 int main(int argc, char **argv) {
   
   GPU_Part(argc,argv);
   //CPU_Part(argc,argv);
-  
-
+ 
   return 0;
 }
